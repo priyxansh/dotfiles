@@ -31,9 +31,9 @@ MouseArea {
         }
         event.accepted = true;
     }
-    onEntered: {
-        tooltip.text = TrayService.getTooltipForItem(root.item);
-    }
+    // onEntered: {
+    //     tooltip.text = TrayService.getTooltipForItem(root.item);
+    // }
 
     Loader {
         id: menu
@@ -89,11 +89,11 @@ MouseArea {
         }
     }
 
-    PopupToolTip {
-        id: tooltip
-        extraVisibleCondition: root.containsMouse
-        alternativeVisibleCondition: extraVisibleCondition
-        anchorEdges: (!Config.options.bar.bottom && !Config.options.bar.vertical) ? Edges.Bottom : Edges.Top
-    }
+    // PopupToolTip {
+    //     id: tooltip
+    //     extraVisibleCondition: root.containsMouse
+    //     alternativeVisibleCondition: extraVisibleCondition
+    //     anchorEdges: (!Config.options.bar.bottom && !Config.options.bar.vertical) ? Edges.Bottom : Edges.Top
+    // }
 
 }

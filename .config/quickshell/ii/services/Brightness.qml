@@ -247,6 +247,26 @@ Singleton {
         }
     }
 
+    // Called by external scripts after changing hardware brightness
+    // so the OSD reflects the real hardware value.
+    // Usage: qs -c ii ipc call brightnessSet notify 0.55
+    IpcHandler {
+        target: "brightnessSet"
+
+        function notify(value: string): void {
+            const focusedName = Hyprland.focusedMonitor.name;
+            const monitor = root.monitors.find(m => focusedName === m.screen.name);
+            if (monitor) {
+                const v = parseFloat(value);
+                if (!isNaN(v)) {
+                    monitor.ready = true;
+                    monitor.brightness = Math.max(0, Math.min(1, v));
+                    root.brightnessChanged();
+                }
+            }
+        }
+    }
+
     GlobalShortcut {
         name: "brightnessIncrease"
         description: "Increase brightness"

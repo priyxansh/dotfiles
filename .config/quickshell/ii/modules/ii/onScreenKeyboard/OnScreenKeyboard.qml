@@ -36,6 +36,7 @@ Scope { // Scope
             visible: oskLoader.active && !GlobalStates.screenLocked
 
             anchors {
+                top: true
                 bottom: true
                 left: true
                 right: true
@@ -44,19 +45,17 @@ Scope { // Scope
             function hide() {
                 GlobalStates.oskOpen = false
             }
-            exclusiveZone: root.pinned ? implicitHeight - Appearance.sizes.hyprlandGapsOut : 0
-            implicitWidth: oskBackground.width + Appearance.sizes.elevationMargin * 2
-            implicitHeight: oskBackground.height + Appearance.sizes.elevationMargin * 2
+            exclusiveZone: 0
+            implicitWidth: Screen.width
+            implicitHeight: Screen.height
             WlrLayershell.namespace: "quickshell:osk"
             WlrLayershell.layer: WlrLayer.Overlay
-            // Hyprland 0.49: Focus is always exclusive and setting this breaks mouse focus grab
-            // WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
             color: "transparent"
 
             mask: Region {
                 item: oskBackground
             }
-
 
             // Background
             StyledRectangularShadow {
@@ -64,7 +63,9 @@ Scope { // Scope
             }
             Rectangle {
                 id: oskBackground
-                anchors.centerIn: parent
+                // Initial position: bottom-center
+                x: (oskRoot.width - width) / 2
+                y: oskRoot.height - height - 10
                 color: Appearance.colors.colLayer0
                 radius: Appearance.rounding.windowRounding
                 property real padding: 10
@@ -77,11 +78,75 @@ Scope { // Scope
                     }
                 }
 
+                // Drag handler for the entire keyboard
+                MouseArea {
+                    id: dragArea
+                    anchors.fill: parent
+                    property real startX: 0
+                    property real startY: 0
+                    property real startMouseX: 0
+                    property real startMouseY: 0
+                    property bool dragging: false
+
+                    // Let child buttons handle clicks; only drag on press+move
+                    onPressed: (mouse) => {
+                        startX = oskBackground.x;
+                        startY = oskBackground.y;
+                        startMouseX = mouse.x;
+                        startMouseY = mouse.y;
+                        dragging = false;
+                    }
+                    onPositionChanged: (mouse) => {
+                        let dx = mouse.x - startMouseX;
+                        let dy = mouse.y - startMouseY;
+                        if (!dragging && Math.abs(dx) + Math.abs(dy) > 5) {
+                            dragging = true;
+                        }
+                        if (dragging) {
+                            oskBackground.x = Math.max(0, Math.min(oskRoot.width - oskBackground.width, startX + dx));
+                            oskBackground.y = Math.max(0, Math.min(oskRoot.height - oskBackground.height, startY + dy));
+                        }
+                    }
+                    onReleased: {
+                        if (!dragging) {
+                            // Was a click, not a drag — do nothing, let it propagate
+                        }
+                        dragging = false;
+                    }
+                    // Don't block child mouse events when not dragging
+                    z: -1
+                }
+
                 RowLayout {
                     id: oskRowLayout
                     anchors.centerIn: parent
                     spacing: 5
+
+                    // Drag handle area
                     VerticalButtonGroup {
+                        MouseArea {
+                            anchors.fill: parent
+                            property real startX: 0
+                            property real startY: 0
+                            property real startMouseX: 0
+                            property real startMouseY: 0
+
+                            cursorShape: Qt.SizeAllCursor
+                            onPressed: (mouse) => {
+                                startX = oskBackground.x;
+                                startY = oskBackground.y;
+                                startMouseX = mapToItem(oskRoot.contentItem, mouse.x, mouse.y).x;
+                                startMouseY = mapToItem(oskRoot.contentItem, mouse.x, mouse.y).y;
+                            }
+                            onPositionChanged: (mouse) => {
+                                let mapped = mapToItem(oskRoot.contentItem, mouse.x, mouse.y);
+                                let dx = mapped.x - startMouseX;
+                                let dy = mapped.y - startMouseY;
+                                oskBackground.x = Math.max(0, Math.min(oskRoot.width - oskBackground.width, startX + dx));
+                                oskBackground.y = Math.max(0, Math.min(oskRoot.height - oskBackground.height, startY + dy));
+                            }
+                        }
+
                         OskControlButton { // Pin button
                             toggled: root.pinned
                             downAction: () => root.pinned = !root.pinned
@@ -99,6 +164,13 @@ Scope { // Scope
                             contentItem: MaterialSymbol {
                                 horizontalAlignment: Text.AlignHCenter
                                 text: "keyboard_hide"
+                                iconSize: Appearance.font.pixelSize.larger
+                            }
+                        }
+                        OskControlButton {
+                            contentItem: MaterialSymbol {
+                                horizontalAlignment: Text.AlignHCenter
+                                text: "drag_indicator"
                                 iconSize: Appearance.font.pixelSize.larger
                             }
                         }

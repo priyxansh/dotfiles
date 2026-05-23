@@ -17,10 +17,18 @@ Singleton {
     property list<var> unpinnedItems: invertPins ? itemsInUserList : itemsNotInUserList
 
     function getTooltipForItem(item) {
-        var result = item.tooltipTitle.length > 0 ? item.tooltipTitle
-                : (item.title.length > 0 ? item.title : item.id);
-        if (item.tooltipDescription.length > 0) result += " • " + item.tooltipDescription;
-        if (Config.options.tray.showItemId) result += "\n[" + item.id + "]";
+        if (!item) return "";
+        
+        // Ensure properties are treated as strings even if null/undefined
+        var tooltipTitle = item.tooltipTitle || "";
+        var title = item.title || "";
+        var tooltipDescription = item.tooltipDescription || "";
+        
+        var result = tooltipTitle.length > 0 ? tooltipTitle
+                : (title.length > 0 ? title : item.id);
+                
+        if (tooltipDescription.length > 0) result += " • " + tooltipDescription;
+        if (Config && Config.options && Config.options.tray.showItemId) result += "\n[" + item.id + "]";
         return result;
     }
 
