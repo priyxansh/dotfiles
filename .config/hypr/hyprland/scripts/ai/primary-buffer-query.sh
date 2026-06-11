@@ -11,7 +11,7 @@ Only respond for the appropriate case and use as little text as possible.\
 The content:"
 
 first_loaded_model=$("$(dirname "$0")/show-loaded-ollama-models.sh" -j | jq -r '.[0].model' 2>/dev/null) || first_loaded_model=""
-model=${first_loaded_model:-"llama3.2"}
+model=${first_loaded_model:-"dolphin-phi"}
 
 # Parse command-line arguments
 while [[ "$#" -gt 0 ]]; do

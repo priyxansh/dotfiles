@@ -42,3 +42,5 @@ function set-quantum
         echo "Please provide a value (e.g., set-quantum 64)"
     end
 end
+set -gx REABOT_ROOT /home/sparda/code/projects/reabot
+set -gx REABOT_ROOT /home/sparda/code/projects/reabot
